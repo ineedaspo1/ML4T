@@ -6,3 +6,6 @@ http://quantsoftware.gatech.edu/Assess_portfolio
 
 #proj setup
 http://quantsoftware.gatech.edu/ML4T_Software_Setup
+
+# here is how u run from assess_portfolio dir
+PYTHONPATH=../:. python analysis.py
