@@ -49,7 +49,8 @@ def assess_portfolio(sd = dt.datetime(2008,1,1), ed = dt.datetime(2009,1,1), \
     # Compare daily portfolio value with SPY using a normalized plot
     if gen_plot:
         # add code to plot here
-        df_temp = pd.concat([port_val, prices_SPY], keys=['Portfolio', 'SPY'], axis=1)
+        df_temp = pd.concat([port_val/port_val[0], prices_SPY / prices_SPY.iloc[0]], keys=['Portfolio', 'SPY'], axis=1)
+        plot_data(df_temp)
         pass
 
     # Add code here to properly compute end value
@@ -64,14 +65,15 @@ def test_code():
     # Define input parameters
     # Note that ALL of these values will be set to different values by
     # the autograder!
-    start_date = dt.datetime(2009,1,1)
-    end_date = dt.datetime(2010,1,1)
+    start_date = dt.datetime(2010,1,1)
+    end_date = dt.datetime(2010,12,31)
     symbols = ['GOOG', 'AAPL', 'GLD', 'XOM']
     allocations = [0.2, 0.3, 0.4, 0.1]
     start_val = 1000000  
     risk_free_rate = 0.0
     sample_freq = 252
 
+    
     # Assess the portfolio
     cr, adr, sddr, sr, ev = assess_portfolio(sd = start_date, ed = end_date,\
         syms = symbols, \
@@ -88,6 +90,7 @@ def test_code():
     print "Volatility (stdev of daily returns):", sddr
     print "Average Daily Return:", adr
     print "Cumulative Return:", cr
-
+    print "End Value:", ev
+    
 if __name__ == "__main__":
     test_code()
