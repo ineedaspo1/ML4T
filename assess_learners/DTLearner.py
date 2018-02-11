@@ -1,5 +1,6 @@
-"""A simple wrapper for Decision Tree regression"""
-
+"""
+A simple wrapper for Decision Tree Regression. (c) 2018 T. Ruzmetov
+"""
 import numpy as np
 import pandas as pd
 from copy import deepcopy
@@ -22,13 +23,10 @@ class DTLearner(object):
     def buildTree(self, dataX, dataY, rootX=[], rootY=[]):
         """
         This is eager DT algorithm for regression that chooses best feature for splitting based
-        on its highest abs(corr) with target feature. Median of the chosen feature is used as
-        splitting value.
-        
-        If all features have the same abs(corr), choose the first feature.
-
-        If the best feature doesn't split the data into two groups, choose the next best; 
-        if none of the features does, return leaf.
+        on its highest abs(corr(X_i,Y)). Median of the chosen feature is used as splitting value.
+        If all features have the same abs(corr(X_i,Y)), choose the first feature and pass.
+        If the best feature can't split the target into two groups, choose the next best feature; 
+        if none of the features do, return the leaf.
         
         Parameters:
         dataX: A numpy ndarray of X values at each node
@@ -42,51 +40,52 @@ class DTLearner(object):
         root, for its left and right subtrees (if any)
         """
 
-        num_samps = dataX.shape[0]
         num_feats = dataX.shape[1]
+        num_samps = dataX.shape[0]
 
         #return the most common value from the root of current node if no sample left
-        if num_samps == 0:
+        if num_samps < 1:
             return np.array([-1, Counter(rootY).most_common(1)[0][0], np.nan, np.nan])
 
-        # If there are <= leaf_size samples or all data in dataY are the same, return leaf
-        if num_samps <= self.leaf_size or len(pd.unique(dataY)) == 1:
+        # return leaf, if there are <= leaf_size samples 
+        if num_samps <= self.leaf_size:
             return np.array([-1, Counter(dataY).most_common(1)[0][0], np.nan, np.nan])
-    
+
+        # return leaf, if all data in dataY are the same
+        if num_samps <= len(np.unique(dataY)) == 1:
+            return np.array([-1, Counter(dataY).most_common(1)[0][0], np.nan, np.nan])
+        
         remain_feats_for_split = list(range(num_feats))
 
-        # Get a list of tuples of features and their correlations with dataY
+        # calculate coor(X_i,Y)
         corrs = []
         for i in range(num_feats):
-            #abs_corr = abs(np.correlate(dataX[:,i], dataY))
             abs_corr = abs(np.corrcoef(dataX[:,i], dataY)[0,1])
             corrs.append((i, abs_corr))
         
-        # Sort the list in descending order by correlation
+        # Sort corrs in descending order
         corrs = sorted(corrs, key=itemgetter(1), reverse=True)
 
-        # Choose the best feature, if any, by iterating over corrs
         feat_corr_i = 0
         while len(remain_feats_for_split) > 0:
             best_feat_i = corrs[feat_corr_i][0]
             best_abs_corr = corrs[feat_corr_i][1]
 
-            # Split the data according to the best feature
+            # calculate split_val by taking median over best feature
             split_val = np.median(dataX[:, best_feat_i])
 
-            # Logical arrays for indexing
+            # get boolean indecies for left and right splitting
             left_index = dataX[:, best_feat_i] <= split_val
             right_index = dataX[:, best_feat_i] > split_val
 
-            # If we can split the data into two groups, then break out of the loop            
-            if len(np.unique(left_index)) != 1:
+            # break out of the loop if split is successful            
+            if len(np.unique(left_index)) > 1:
                 break
             
             remain_feats_for_split.remove(best_feat_i)
             feat_corr_i += 1
-
             
-        # If we complete the while loop and run out of features to split, return leaf
+        #If we complete the while loop and run out of features to split, return leaf
         if len(remain_feats_for_split) == 0:
             return np.array([-1, Counter(dataY).most_common(1)[0][0], np.nan, np.nan])
 
@@ -99,6 +98,7 @@ class DTLearner(object):
             righttree_start = 2 # The right subtree starts 2 rows down
         elif lefttree.ndim > 1:
             righttree_start = lefttree.shape[0] + 1
+
         root = np.array([best_feat_i, split_val, 1, righttree_start])
 
         return np.vstack((root, lefttree, righttree))
