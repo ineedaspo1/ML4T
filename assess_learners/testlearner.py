@@ -4,7 +4,12 @@ Test a learner.  (c) 2015 Tucker Balch
 
 import numpy as np
 import math
+import pandas as pd
+import numpy as np
 import LinRegLearner as lrl
+import DTLearner as dt
+import RTLearner as rt
+import BagLearner as bl
 import sys
 
 if __name__=="__main__":
@@ -13,6 +18,7 @@ if __name__=="__main__":
         sys.exit(1)
     inf = open(sys.argv[1])
     data = np.array([map(float,s.strip().split(',')) for s in inf.readlines()])
+    #data = pd.read_csv(inf,index_col=0)
 
     # compute how much of the data is training and testing
     train_rows = int(0.6* data.shape[0])
@@ -27,8 +33,16 @@ if __name__=="__main__":
     print testX.shape
     print testY.shape
 
-    # create a learner and train it
-    learner = lrl.LinRegLearner(verbose = True) # create a LinRegLearner
+####### Test 1 Linear Regression###############################################
+    # create linear regression learner and train it
+    #learner = lrl.LinRegLearner(verbose = True) # create a LinRegLearner
+    learner = dt.DTLearner(verbose = True) # create a DTLearner
+    #learner = rt.RTLearner(leaf_size = 1, verbose = False) # create a RTLearner
+   # learner = bl.BagLearner(learner = ["dt","lrl"],
+    #                        kwargs = {"argument1":1, "argument2":2},
+     #                       bags = 10, boost = False, verbose = False) # create a BagLearner
+
+    
     learner.addEvidence(trainX, trainY) # train it
     print learner.author()
 
@@ -49,3 +63,7 @@ if __name__=="__main__":
     print "RMSE: ", rmse
     c = np.corrcoef(predY, y=testY)
     print "corr: ", c[0,1]
+    print"----------------------------------------------------------------------------------"
+
+    ####### Test 2 Decision Tree Learner ###############################################
+    # create DT learner and train it

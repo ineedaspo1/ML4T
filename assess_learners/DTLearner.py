@@ -11,16 +11,16 @@ from operator import itemgetter
 class DTLearner(object):
 
     def __init__(self, leaf_size=1, verbose=False, tree=None):
-        self.leaf_size = leaf_size
-        self.verbose = verbose
-        self.tree = deepcopy(tree)
-        if verbose:
+       self.leaf_size = leaf_size
+       self.verbose = verbose
+       self.tree = deepcopy(tree)
+       if verbose:
             self.get_learner_info()
-
+            
     def author(self):
         return 'truzmetov3'        
 
-    def __build_tree(self, dataX, dataY, rootX=[], rootY=[]):
+    def buildTree(self, dataX, dataY, rootX=[], rootY=[]):
         """Builds the Decision Tree recursively by choosing the best feature to split on and 
         the splitting value. The best feature has the highest absolute correlation with dataY. 
         If all features have the same absolute correlation, choose the first feature. The 
@@ -54,12 +54,14 @@ class DTLearner(object):
 
         # Get a list of tuples of features and their correlations with dataY
         feats_corrs = []
-        for feat_i in range(num_feats):
-            abs_corr = abs(pearsonr(dataX[:, feat_i], dataY)[0])
-            feats_corrs.append((feat_i, abs_corr))
+        for i in range(num_feats):
+            abs_corr = abs(pearsonr(dataX[:,i], dataY)[0])
+            #abs_corr = abs(np.correlate(dataX[:,i], dataY))
+            feats_corrs.append((i, abs_corr))
         
         # Sort the list in descending order by correlation
         feats_corrs = sorted(feats_corrs, key=itemgetter(1), reverse=True)
+
 
         # Choose the best feature, if any, by iterating over feats_corrs
         feat_corr_i = 0
@@ -80,14 +82,15 @@ class DTLearner(object):
             
             avail_feats_for_split.remove(best_feat_i)
             feat_corr_i += 1
-        
+
+            
         # If we complete the while loop and run out of features to split, return leaf
         if len(avail_feats_for_split) == 0:
             return np.array([-1, Counter(dataY).most_common(1)[0][0], np.nan, np.nan])
 
         # Build left and right branches and the root                    
-        lefttree = self.__build_tree(dataX[left_index], dataY[left_index], dataX, dataY)
-        righttree = self.__build_tree(dataX[right_index], dataY[right_index], dataX, dataY)
+        lefttree = self.buildTree(dataX[left_index], dataY[left_index], dataX, dataY)
+        righttree = self.buildTree(dataX[right_index], dataY[right_index], dataX, dataY)
 
         # Set the starting row for the right subtree of the current root
         if lefttree.ndim == 1:
@@ -136,7 +139,7 @@ class DTLearner(object):
         Returns: An updated tree matrix for DTLearner
         """
 
-        new_tree = self.__build_tree(dataX, dataY)
+        new_tree = self.buildTree(dataX, dataY)
 
         # If self.tree is currently None, simply assign new_tree to it
         if self.tree is None:
@@ -185,48 +188,3 @@ class DTLearner(object):
 
 if __name__=="__main__":
     print "This is a Decision Tree Learner\n"
-
-    # Some data to test the DTLearner
-    x0 = np.array([0.885, 0.725, 0.560, 0.735, 0.610, 0.260, 0.500, 0.320])
-    x1 = np.array([0.330, 0.390, 0.500, 0.570, 0.630, 0.630, 0.680, 0.780])
-    x2 = np.array([9.100, 10.900, 9.400, 9.800, 8.400, 11.800, 10.500, 10.000])
-    x = np.array([x0, x1, x2]).T
-    
-    y = np.array([4.000, 5.000, 6.000, 5.000, 3.000, 8.000, 7.000, 6.000])
-
-    # Create a tree learner from given train X and y
-    dtl = DTLearner(verbose=True, leaf_size=1)
-    print ("\nAdd data")
-    dtl.addEvidence(x, y)
-
-    print ("\nCreate another tree learner from an existing tree")
-    dtl2 = DTLearner(tree=dtl.tree)
-
-    # dtl2 should have the same tree as dtl
-    assert np.any(dtl.tree == dtl2.tree)
-
-    dtl2.get_learner_info()
-
-    # Modify the dtl2.tree and assert that this doesn't affect dtl.tree
-    dtl2.tree[0] = np.arange(dtl2.tree.shape[1])
-    assert np.any(dtl.tree != dtl2.tree)
-
-    # Query with dummy data
-    dtl.query(np.array([[1, 2, 3], [0.2, 12, 12]]))
-
-    # Another dataset to test that "If the best feature doesn't split the data into two
-    # groups, choose the second best one and so on; if none of the features does, return leaf"
-    x2 = np.array([
-     [  0.26,    0.63,   11.8  ],
-     [  0.26,    0.63,   11.8  ],
-     [  0.32,    0.78,   10.   ],
-     [  0.32,    0.78,   10.   ],
-     [  0.32,    0.78,   10.   ],
-     [  0.735,   0.57,    9.8  ],
-     [  0.26,    0.63,   11.8  ],
-     [  0.61,    0.63,    8.4  ]])
-        
-    y2 = np.array([ 8.,  8.,  6.,  6.,  6.,  5.,  8.,  3.])
-        
-    dtl = DTLearner(verbose=True)
-    dtl.addEvidence(x2, y2)
