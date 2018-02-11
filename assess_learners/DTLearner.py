@@ -2,7 +2,6 @@
 
 import numpy as np
 import pandas as pd
-from scipy.stats import pearsonr
 from copy import deepcopy
 from collections import Counter
 from operator import itemgetter
@@ -21,12 +20,16 @@ class DTLearner(object):
         return 'truzmetov3'        
 
     def buildTree(self, dataX, dataY, rootX=[], rootY=[]):
-        """Builds the Decision Tree recursively by choosing the best feature to split on and 
-        the splitting value. The best feature has the highest absolute correlation with dataY. 
-        If all features have the same absolute correlation, choose the first feature. The 
-        splitting value is the median of the data according to the best feature. 
-        If the best feature doesn't split the data into two groups, choose the second best 
-        one and so on; if none of the features does, return leaf
+        """
+        This is eager DT algorithm for regression that chooses best feature for splitting based
+        on its highest abs(corr) with target feature. Median of the chosen feature is used as
+        splitting value.
+        
+        If all features have the same abs(corr), choose the first feature.
+
+        If the best feature doesn't split the data into two groups, choose the next best; 
+        if none of the features does, return leaf.
+        
         Parameters:
         dataX: A numpy ndarray of X values at each node
         dataY: A numpy 1D array of Y values at each node
@@ -38,36 +41,35 @@ class DTLearner(object):
         (int type; index for a leaf is -1), splitting values, and starting rows, from the current 
         root, for its left and right subtrees (if any)
         """
-        # Get the number of samples (rows) and features (columns) of dataX
-        num_samples = dataX.shape[0]
+
+        num_samps = dataX.shape[0]
         num_feats = dataX.shape[1]
 
-        # If there is no sample left, return the most common value from the root of current node
-        if num_samples == 0:
+        #return the most common value from the root of current node if no sample left
+        if num_samps == 0:
             return np.array([-1, Counter(rootY).most_common(1)[0][0], np.nan, np.nan])
 
         # If there are <= leaf_size samples or all data in dataY are the same, return leaf
-        if num_samples <= self.leaf_size or len(pd.unique(dataY)) == 1:
+        if num_samps <= self.leaf_size or len(pd.unique(dataY)) == 1:
             return np.array([-1, Counter(dataY).most_common(1)[0][0], np.nan, np.nan])
     
-        avail_feats_for_split = list(range(num_feats))
+        remain_feats_for_split = list(range(num_feats))
 
         # Get a list of tuples of features and their correlations with dataY
-        feats_corrs = []
+        corrs = []
         for i in range(num_feats):
-            abs_corr = abs(pearsonr(dataX[:,i], dataY)[0])
             #abs_corr = abs(np.correlate(dataX[:,i], dataY))
-            feats_corrs.append((i, abs_corr))
+            abs_corr = abs(np.corrcoef(dataX[:,i], dataY)[0,1])
+            corrs.append((i, abs_corr))
         
         # Sort the list in descending order by correlation
-        feats_corrs = sorted(feats_corrs, key=itemgetter(1), reverse=True)
+        corrs = sorted(corrs, key=itemgetter(1), reverse=True)
 
-
-        # Choose the best feature, if any, by iterating over feats_corrs
+        # Choose the best feature, if any, by iterating over corrs
         feat_corr_i = 0
-        while len(avail_feats_for_split) > 0:
-            best_feat_i = feats_corrs[feat_corr_i][0]
-            best_abs_corr = feats_corrs[feat_corr_i][1]
+        while len(remain_feats_for_split) > 0:
+            best_feat_i = corrs[feat_corr_i][0]
+            best_abs_corr = corrs[feat_corr_i][1]
 
             # Split the data according to the best feature
             split_val = np.median(dataX[:, best_feat_i])
@@ -80,12 +82,12 @@ class DTLearner(object):
             if len(np.unique(left_index)) != 1:
                 break
             
-            avail_feats_for_split.remove(best_feat_i)
+            remain_feats_for_split.remove(best_feat_i)
             feat_corr_i += 1
 
             
         # If we complete the while loop and run out of features to split, return leaf
-        if len(avail_feats_for_split) == 0:
+        if len(remain_feats_for_split) == 0:
             return np.array([-1, Counter(dataY).most_common(1)[0][0], np.nan, np.nan])
 
         # Build left and right branches and the root                    
@@ -102,7 +104,7 @@ class DTLearner(object):
         return np.vstack((root, lefttree, righttree))
     
 
-    def __tree_search(self, point, row):
+    def recur_search(self, point, row):
         """A private function to be used with query. It recursively searches 
         the decision tree matrix and returns a predicted value for point
         Parameters:
@@ -122,11 +124,11 @@ class DTLearner(object):
 
         # If the corresponding feature's value from point <= split_val, go to the left tree
         elif point[int(feat)] <= split_val:
-            pred = self.__tree_search(point, row + int(self.tree[row, 2]))
+            pred = self.recur_search(point, row + int(self.tree[row, 2]))
 
         # Otherwise, go to the right tree
         else:
-            pred = self.__tree_search(point, row + int(self.tree[row, 3]))
+            pred = self.recur_search(point, row + int(self.tree[row, 3]))
         
         return pred
 
@@ -168,7 +170,7 @@ class DTLearner(object):
 
         preds = []
         for point in points:
-            preds.append(self.__tree_search(point, row=0))
+            preds.append(self.recur_search(point, row=0))
         return np.asarray(preds)
 
 

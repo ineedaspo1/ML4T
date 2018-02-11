@@ -1,15 +1,11 @@
 """
-A simple wrapper for Bagging.  (c) 2015 Darragh Hanley  
+A simple wrapper for Bagging.  (c) 2018 T. Ruzmetov
 """
 import numpy as np
-#import LinRegLearner as lrl
-#import DTLearner as dt
-#import RTLearner as rt
-
 
 class BagLearner(object):
 
-    def __init__(self, learner, kwargs, bags, boost):
+    def __init__(self, learner, kwargs, bags, boost, verbose):
         """
         @summary: Store parameters
         """
@@ -19,7 +15,6 @@ class BagLearner(object):
         self.learners = []
         for i in range(0,self.bags):
             self.learners.append(learner(**kwargs))
-
     
     def author(self):
         return 'truzmetov3'    
@@ -28,8 +23,6 @@ class BagLearner(object):
         """
         @summary: Add training data to learner
         """
-        # Store the training data for use once we get test data  
-        # self.learner.addEvidence(self.Xtrain, self.Ytrain)
         
         if self.boost:
             sample_index = np.random.choice(len(dataY), len(dataY), replace=True)
@@ -50,19 +43,17 @@ class BagLearner(object):
                 dataYsamp = dataY[sample_index]
                 self.learners[i].addEvidence(dataXsamp, dataYsamp)
         
-        
+      
     def query(self, points):
         """
         @summary: Estimate a set of test points given the model we built.
         @param points: should be a numpy array with each row corresponding to a specific query.
         @returns the estimated values according to the saved model.
         """
-         
         y_pred = np.empty([self.bags, points.shape[0]])
         for i in range(0,self.bags):
             y_pred[i] = self.learners[i].query(points)
         return np.mean(y_pred, axis=0)
-            
-
+    
 if __name__=="__main__":
     print "the secret clue is not to be found here"
