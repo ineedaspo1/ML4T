@@ -52,4 +52,4 @@ class BagLearner(object):
         return np.mean(y_pred, axis=0)
     
 if __name__=="__main__":
-    print " mama mia "
+    print(" mama mia ")

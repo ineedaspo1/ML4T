@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 from copy import deepcopy
 from operator import itemgetter
+from collections import Counter
 
 class DTLearner(object):
 
@@ -134,4 +135,4 @@ class DTLearner(object):
 
 
 if __name__=="__main__":
-    print "No more secret clues"
+    print("No more secret clues")

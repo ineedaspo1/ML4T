@@ -9,7 +9,7 @@ import LinRegLearner as lrl
 import DTLearner as dt
 import RTLearner as rt
 import BagLearner as bl
-#import InsaneLearner as it
+import InsaneLearner as it
 import sys
 
 if __name__=="__main__":
@@ -42,7 +42,6 @@ if __name__=="__main__":
     #learner = bl.BagLearner(learner = dt,
     #                        kwargs = {"argument1":1, "argument2":2},
     #                        bags = 10, boost = False, verbose = False) # create a BagLearner
-
     
     learner.addEvidence(trainX, trainY) # train it
     print learner.author()
