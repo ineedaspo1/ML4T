@@ -2,9 +2,9 @@
 A simple wrapper for Random Tree Regression. (c) 2018 T. Ruzmetov
 """
 import numpy as np
+import pandas as pd
 from random import randint
 from copy import deepcopy
-from collections import Counter
 from operator import itemgetter
 
 class RTLearner(object):
@@ -39,64 +39,96 @@ class RTLearner(object):
         return left_index, right_index, feature_index, split_val
     
 
-    def build_tree(self, x_train, y_train):
-        num_instances = x_train.shape[0]
-        if num_instances == 0:
-            print 'all -1s'
-            return np.array([-1, -1, -1, -1])
-        if num_instances <= self.leaf_size:
-            #If there's only one instance, take the mean of the labels
-            return np.array([-1, np.mean(y_train), -1, -1])
+    def buildTree(self, dataX, dataY):
+        """
 
-        values = np.unique(y_train)
-        if len(values) == 1:
-            # If all instances have the same label, return that label
-            return np.array([-1, y_train[0], -1, -1])
+        """
+        
+        num_samps = dataX.shape[0]
+        num_feats = dataX.shape[1]
+        
+        ##########################################################
+        #return the most common value from the root of current node if no sample left
+        if num_samps < 1:
+            return np.array([-1, -1, np.nan, np.nan])
 
+        # return leaf, if there are <= leaf_size samples 
+        if num_samps <= self.leaf_size:
+            return np.array([-1, np.mean(dataY), np.nan, np.nan])
+
+        # return leaf, if all data in dataY are the same
+        if len(np.unique(dataY)) == 1:
+            return np.array([-1, dataY[0], np.nan, np.nan])
+        ##########################################################
+
+        
         # Choose a random feature, and a random split value
         left_indices, right_indices, feature_index, split_val = \
-            self.get_split_indices(x_train, num_instances)
+            self.get_split_indices(dataX, num_samps)
 
         while len(left_indices) < 1 or len(right_indices) < 1:
             left_indices, right_indices, feature_index, split_val = \
-                self.get_split_indices(x_train, num_instances)
+                self.get_split_indices(dataX, num_samps)
 
-        left_x_train = np.array([x_train[i] for i in left_indices])
-        left_y_train = np.array([y_train[i] for i in left_indices])
-        right_x_train = np.array([x_train[i] for i in right_indices])
-        right_y_train = np.array([y_train[i] for i in right_indices])
-
-        left_tree = self.build_tree(left_x_train, left_y_train)
-        right_tree = self.build_tree(right_x_train, right_y_train)
-
-        if len(left_tree.shape) == 1:
-            num_left_side_instances = 2
-        else:
-            num_left_side_instances = left_tree.shape[0] + 1
-
-        root = [feature_index, split_val, 1, num_left_side_instances]
-        return np.vstack((root, np.vstack((left_tree, right_tree))))
-
-    def addEvidence(self, Xtrain, Ytrain):
-        self.tree = self.build_tree(Xtrain, Ytrain)
-
+        # Build left and right branches and the root                    
+        lefttree = self.buildTree(dataX[left_indices], dataY[left_indices])
+        righttree = self.buildTree(dataX[right_indices], dataY[right_indices])
         
-    def traverse_tree(self, instance, row=0):
+        ######################################################################
+        # Set the starting row for the right subtree of the current root
+        if lefttree.ndim == 1:
+            righttree_start = 2 # The right subtree starts 2 rows down
+        elif lefttree.ndim > 1:
+            righttree_start = lefttree.shape[0] + 1
+        
+        ######################################################################
+        
+        root = [feature_index, split_val, 1, righttree_start]
+        return np.vstack((root, lefttree, righttree))
+
+
+    def recur_search(self, point, row=0):
         feature_index = int(self.tree[row][0])
         if feature_index == -1:
             return self.tree[row][1]
-        if instance[feature_index] <= self.tree[row][1]:
-            return self.traverse_tree(instance, row + int(self.tree[row][2]))
+        if point[feature_index] <= self.tree[row][1]:
+            return self.recur_search(point, row + int(self.tree[row][2]))
         else:
-            return self.traverse_tree(instance, row + int(self.tree[row][3]))
+            return self.recur_search(point, row + int(self.tree[row][3]))
 
-    def query(self, Xtest):
-        result = []
-        for instance in Xtest:
-            result.append(self.traverse_tree(instance))
-        return np.array(result)
+        
+    def addEvidence(self, dataX, dataY):
+        self.tree = self.buildTree(dataX, dataY)
+        if self.verbose:
+            self.get_learner_info()
+        
+   
+    def query(self, dataX):
+        """ Performe prediction on test set given the model we built
+        Params:  dataX -np ndarray of test 
+        Returns: preds: 1D np array of the estimated values
+        """
+        preds = []
+        for rows in dataX:
+            preds.append(self.recur_search(rows))
+        return np.array(preds)
+    
+
+    def get_learner_info(self):
+        print ("Info about this Random Tree Learner:")
+        print ("leaf_size =", self.leaf_size)
+        if self.tree is not None:
+            print ("tree shape =", self.tree.shape)
+            print ("tree as a matrix:")
+            # Create a dataframe from tree for a user-friendly view
+            df_tree = pd.DataFrame(self.tree, columns=["factor", "split_val", "left", "right"])
+            df_tree.index.name = "node"
+            print (df_tree)
+        else:
+            print ("Tree has no data")
+            
 
 if __name__=="__main__":
-    print "the secret clue is 'zzyzx'"
+    print "No more secret clues"
 
     

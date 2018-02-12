@@ -6,9 +6,7 @@ import numpy as np
 class BagLearner(object):
 
     def __init__(self, learner, kwargs, bags, boost, verbose):
-        """
-        @summary: Store parameters
-        """
+
         self.learner = learner(**kwargs)   
         self.boost = boost
         self.bags = bags
@@ -20,9 +18,7 @@ class BagLearner(object):
         return 'truzmetov3'    
              
     def addEvidence(self, dataX, dataY):
-        """
-        @summary: Add training data to learner
-        """
+        """ Add training data to learner """
         
         if self.boost:
             sample_index = np.random.choice(len(dataY), len(dataY), replace=True)
@@ -56,4 +52,4 @@ class BagLearner(object):
         return np.mean(y_pred, axis=0)
     
 if __name__=="__main__":
-    print "the secret clue is not to be found here"
+    print " mama mia "
