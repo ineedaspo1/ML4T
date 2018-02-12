@@ -37,8 +37,8 @@ if __name__=="__main__":
 ####### Test 1 Linear Regression###############################################
     # create linear regression learner and train it
     #learner = lrl.LinRegLearner(verbose = True) # create a LinRegLearner
-    #learner = dt.DTLearner(verbose = True) # create a DTLearner
-    learner = rt.RTLearner(leaf_size = 1, verbose = False) # create a RTLearner
+    learner = dt.DTLearner(verbose = True) # create a DTLearner
+    #learner = rt.RTLearner(leaf_size = 1, verbose = False) # create a RTLearner
     #learner = bl.BagLearner(learner = dt,
     #                        kwargs = {"argument1":1, "argument2":2},
     #                        bags = 10, boost = False, verbose = False) # create a BagLearner
