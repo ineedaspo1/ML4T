@@ -4,9 +4,7 @@ A simple wrapper for Decision Tree Regression. (c) 2018 T. Ruzmetov
 import numpy as np
 import pandas as pd
 from copy import deepcopy
-from collections import Counter
 from operator import itemgetter
-
 
 class DTLearner(object):
 
@@ -27,35 +25,21 @@ class DTLearner(object):
         If all features have the same abs(corr(X_i,Y)), choose the first feature and pass.
         If the best feature can't split the target into two groups, choose the next best feature; 
         if none of the features do, return the leaf.
-        
-        Parameters:
-        dataX: A numpy ndarray of X values at each node
-        dataY: A numpy 1D array of Y values at each node
-        rootX: A numpy ndarray of X values at the parent/root node of the current one
-        rootY: A numpy 1D array of Y values at the parent/root node of the current one
-        
-        Returns:
-        tree: A numpy ndarray. Each row represents a node and four columns are feature indices 
-        (int type; index for a leaf is -1), splitting values, and starting rows, from the current 
-        root, for its left and right subtrees (if any)
         """
 
         num_feats = dataX.shape[1]
         num_samps = dataX.shape[0]
 
-        ######################################################################       
-        #return the most common value from the root of current node if no sample left
+        ######################################################################
         if num_samps < 1:
             return np.array([-1, -1, np.nan, np.nan])
 
-        # return leaf, if there are <= leaf_size samples 
         if num_samps <= self.leaf_size:
             return np.array([-1, np.mean(dataY), np.nan, np.nan])
 
-        # return leaf, if all data in dataY are the same
         if len(np.unique(dataY)) == 1:
             return np.array([-1, dataY[0], np.nan, np.nan])
-        ########################################################################
+        ######################################################################
 
             
         remain_feats_for_split = list(range(num_feats))
@@ -105,77 +89,33 @@ class DTLearner(object):
         #############################################################################
         
         root = np.array([best_feat_i, split_val, 1, righttree_start])
-
         return np.vstack((root, lefttree, righttree))
-    
 
-    def recur_search(self, point, row):
-        """A private function to be used with query. It recursively searches 
-        the decision tree matrix and returns a predicted value for point
-        Parameters:
-        point: A numpy 1D array of test query
-        row: The row of the decision tree matrix to search
-    
-        Returns 
-        pred: The predicted value
-        """
 
-        # Get the feature on the row and its corresponding splitting value
-        feat, split_val = self.tree[row, 0:2]
-        
-        # If splitting value of feature is -1, we have reached a leaf so return it
-        if feat == -1:
-            return split_val
-
-        # If the corresponding feature's value from point <= split_val, go to the left tree
-        elif point[int(feat)] <= split_val:
-            pred = self.recur_search(point, row + int(self.tree[row, 2]))
-
-        # Otherwise, go to the right tree
+    def recur_search(self, point, row=0):
+        feature_index = int(self.tree[row][0])
+        if feature_index == -1:
+            return self.tree[row][1]
+        if point[feature_index] <= self.tree[row][1]:
+            return self.recur_search(point, row + int(self.tree[row][2]))
         else:
-            pred = self.recur_search(point, row + int(self.tree[row, 3]))
-        
-        return pred
-
+            return self.recur_search(point, row + int(self.tree[row][3]))
 
     def addEvidence(self, dataX, dataY):
-        """Add training data to learner
-        Parameters:
-        dataX: A numpy ndarray of X values of data to add
-        dataY: A numpy 1D array of Y training values
-        Returns: An updated tree matrix for DTLearner
-        """
-
-        new_tree = self.buildTree(dataX, dataY)
-
-        # If self.tree is currently None, simply assign new_tree to it
-        if self.tree is None:
-            self.tree = new_tree
-
-        # Otherwise, append new_tree to self.tree
-        else:
-            self.tree = np.vstack((self.tree, new_tree))
-        
-        # If there is only a single row, expand tree to a numpy ndarray for consistency
-        if len(self.tree.shape) == 1:
-            self.tree = np.expand_dims(self.tree, axis=0)
-        
+        self.tree = self.buildTree(dataX, dataY)
         if self.verbose:
             self.get_learner_info()
+            
         
-        
-    def query(self, points):
-        """Estimates a set of test points given the model we built
-        
-        Parameters:
-        points: A numpy ndarray of test queries
-        Returns: 
-        preds: A numpy 1D array of the estimated values
+    def query(self, dataX):
+        """ Performe prediction on test set given the model we built
+        Params:  dataX -np ndarray of test 
+        Returns: preds: 1D np array of the estimated values
         """
 
         preds = []
-        for point in points:
-            preds.append(self.recur_search(point, row=0))
+        for rows in dataX:
+            preds.append(self.recur_search(rows, row=0))
         return np.asarray(preds)
 
 
@@ -194,4 +134,4 @@ class DTLearner(object):
 
 
 if __name__=="__main__":
-    print "This is a Decision Tree Learner\n"
+    print "No more secret clues"

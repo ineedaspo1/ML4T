@@ -2,9 +2,9 @@
 A simple wrapper for Random Tree Regression. (c) 2018 T. Ruzmetov
 """
 import numpy as np
+import pandas as pd
 from random import randint
 from copy import deepcopy
-from collections import Counter
 from operator import itemgetter
 
 class RTLearner(object):
@@ -83,29 +83,36 @@ class RTLearner(object):
         
         ######################################################################
         
-        #root = [feature_index, split_val, 1, num_left_side_instances]
         root = [feature_index, split_val, 1, righttree_start]
         return np.vstack((root, lefttree, righttree))
 
-    
-    def addEvidence(self, dataX, dataY):
-        self.tree = self.buildTree(dataX, dataY)
 
-        
-    def traverse_tree(self, instance, row=0):
+    def recur_search(self, point, row=0):
         feature_index = int(self.tree[row][0])
         if feature_index == -1:
             return self.tree[row][1]
-        if instance[feature_index] <= self.tree[row][1]:
-            return self.traverse_tree(instance, row + int(self.tree[row][2]))
+        if point[feature_index] <= self.tree[row][1]:
+            return self.recur_search(point, row + int(self.tree[row][2]))
         else:
-            return self.traverse_tree(instance, row + int(self.tree[row][3]))
+            return self.recur_search(point, row + int(self.tree[row][3]))
 
+        
+    def addEvidence(self, dataX, dataY):
+        self.tree = self.buildTree(dataX, dataY)
+        if self.verbose:
+            self.get_learner_info()
+        
+   
     def query(self, dataX):
-        result = []
-        for instance in dataX:
-            result.append(self.traverse_tree(instance))
-        return np.array(result)
+        """ Performe prediction on test set given the model we built
+        Params:  dataX -np ndarray of test 
+        Returns: preds: 1D np array of the estimated values
+        """
+        preds = []
+        for rows in dataX:
+            preds.append(self.recur_search(rows))
+        return np.array(preds)
+    
 
     def get_learner_info(self):
         print ("Info about this Random Tree Learner:")
@@ -122,6 +129,6 @@ class RTLearner(object):
             
 
 if __name__=="__main__":
-    print "the secret clue is 'zzyzx'"
+    print "No more secret clues"
 
     

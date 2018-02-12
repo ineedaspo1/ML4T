@@ -6,9 +6,7 @@ import numpy as np
 class BagLearner(object):
 
     def __init__(self, learner, kwargs, bags, boost, verbose):
-        """
-        @summary: Store parameters
-        """
+
         self.learner = learner(**kwargs)   
         self.boost = boost
         self.bags = bags
@@ -56,4 +54,4 @@ class BagLearner(object):
         return np.mean(y_pred, axis=0)
     
 if __name__=="__main__":
-    print "the secret clue is not to be found here"
+    print " mama mia "
