@@ -18,9 +18,7 @@ class BagLearner(object):
         return 'truzmetov3'    
              
     def addEvidence(self, dataX, dataY):
-        """
-        @summary: Add training data to learner
-        """
+        """ Add training data to learner """
         
         if self.boost:
             sample_index = np.random.choice(len(dataY), len(dataY), replace=True)
