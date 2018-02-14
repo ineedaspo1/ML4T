@@ -32,9 +32,9 @@ class RTLearner(object):
         split_val = (dataX[randint(0, num_samps -1)][feature_index]
                      + dataX[randint(0,num_samps-1)][feature_index])/2
 
-        left_index = [i for i in xrange(dataX.shape[0])
+        left_index = [i for i in range(dataX.shape[0])
                         if dataX[i][feature_index] <= split_val]
-        right_index = [i for i in xrange(dataX.shape[0])
+        right_index = [i for i in range(dataX.shape[0])
                          if dataX[i][feature_index] > split_val]
         return left_index, right_index, feature_index, split_val
     

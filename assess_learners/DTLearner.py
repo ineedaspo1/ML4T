@@ -135,4 +135,4 @@ class DTLearner(object):
 
 
 if __name__=="__main__":
-    print("No more secret clues")
+    print "No more secret clues" 

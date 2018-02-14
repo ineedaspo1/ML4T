@@ -1,5 +1,5 @@
 """
-Test a learner.  (c) 2015 Tucker Balch
+Test a learner.  (c) 2018 T. Ruzmetov
 """
 
 import numpy as np
@@ -35,17 +35,20 @@ if __name__=="__main__":
     print testY.shape
 
 ####### Test 1 Linear Regression###############################################
-    # create linear regression learner and train it
+    # create learner and train it
     #learner = lrl.LinRegLearner(verbose = True) # create a LinRegLearner
-    learner = dt.DTLearner(verbose = True) # create a DTLearner
+    #learner = dt.DTLearner(verbose = True) # create a DTLearner
     #learner = rt.RTLearner(leaf_size = 1, verbose = False) # create a RTLearner
-    #learner = bl.BagLearner(learner = dt,
-    #                        kwargs = {"argument1":1, "argument2":2},
-    #                        bags = 10, boost = False, verbose = False) # create a BagLearner
-    
+    #learner = bl.BagLearner(learner = dt.DTLearner,
+    #                        kwargs = {"leaf_size":1},
+    #                        bags = 20, boost = False, verbose = False) # create a BagLearner
+    learner = it.InsaneLearner(verbose=False)
     learner.addEvidence(trainX, trainY) # train it
     print learner.author()
 
+    for i in range(1,11):
+        print i
+    
     # evaluate in sample
     predY = learner.query(trainX) # get the predictions
     rmse = math.sqrt(((trainY - predY) ** 2).sum()/trainY.shape[0])
@@ -57,7 +60,7 @@ if __name__=="__main__":
 
     # evaluate out of sample
     predY = learner.query(testX) # get the predictions
-    rmse = math.sqrt(((testY - predY) ** 2).sum()/testY.shape[0])
+    rmse = math.sqrt(((testY - predY) ** 2).sum() / testY.shape[0])
     print
     print "Out of sample results"
     print "RMSE: ", rmse
