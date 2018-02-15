@@ -6,7 +6,6 @@ import numpy as np
 class BagLearner(object):
 
     def __init__(self, learner, kwargs, bags, boost, verbose):
-
         self.learner = learner(**kwargs)   
         self.boost = boost
         self.bags = bags

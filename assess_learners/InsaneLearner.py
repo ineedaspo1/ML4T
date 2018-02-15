@@ -8,18 +8,18 @@ import numpy as np
 class InsaneLearner(object):
     
     def __init__(self, verbose = False):
-        learnerList = []
         n_repeats = 20
+        self.learnerList = []
         self.n_repeats = n_repeats 
         self.verbose = verbose
         for i in range(n_repeats):
-            learnerList.append(bl.BagLearner(lrl.LinRegLearner,
-                                             kwargs = {"verbose":True},
+            self.learnerList.append(bl.BagLearner(lrl.LinRegLearner,
+                                             kwargs = {},
                                              bags = 20,
                                              boost = False,
                                              verbose = self.verbose))
-        self.learnerList = learnerList
-        
+
+            
     def author(self):
         return 'truzmetov3'    
       
@@ -32,6 +32,6 @@ class InsaneLearner(object):
         for col in range(self.n_repeats):
             pred[:,col] = self.learnerList[col].query(testX)
         return pred.mean(axis = 1)
-        
+
 if __name__=="__main__":
     print "Health is much more important than the wealth!"
