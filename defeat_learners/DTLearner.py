@@ -1,41 +1,120 @@
 """
-A simple wrapper for linear regression.  (c) 2015 Tucker Balch
-Note, this is NOT a correct DTLearner; Replace with your own implementation.
+A simple wrapper for Desicion Tree Learner.  (c) 2018 T. Ruzmetov
 """
 
 import numpy as np
 import warnings
 
 class DTLearner(object):
-
-    def __init__(self, leaf_size=1, verbose = False):
-        warnings.warn("\n\n  WARNING! THIS IS NOT A CORRECT DTLearner IMPLEMENTATION! REPLACE WITH YOUR OWN CODE\n")
-        pass # move along, these aren't the drones you're looking for
+    
+    def __init__(self, leaf_size=1, verbose = False, tree=None):
+        self.leaf_size = leaf_size
+        self.verbose = verbose
+        self.tree = deepcopy(tree)
+        if verbose:
+            self.get_learner_info()
+        pass
 
     def author(self):
-        return 'tb34' # replace tb34 with your Georgia Tech username
+        return 'truzmetov3'
 
-    def addEvidence(self,dataX,dataY):
+    
+    def buildTree(self, dataX, dataY, rootX=[], rootY=[]):
         """
-        @summary: Add training data to learner
-        @param dataX: X values of data to add
-        @param dataY: the Y training values
+        This is eager DT algorithm for regression that chooses best feature for splitting based
+        on its highest abs(corr(X_i,Y)). Median of the chosen feature is used as splitting value.
+        If all features have the same abs(corr(X_i,Y)), choose the first feature and pass.
+        If the best feature can't split the target into two groups, choose the next best feature; 
+        if none of the features do, return the leaf.
         """
-
-        # slap on 1s column so linear regression finds a constant term
-        newdataX = np.ones([dataX.shape[0],dataX.shape[1]+1])
-        newdataX[:,0:dataX.shape[1]]=dataX
-
-        # build and save the model
-        self.model_coefs, residuals, rank, s = np.linalg.lstsq(newdataX, dataY)
+        num_feats = dataX.shape[1]
+        num_samps = dataX.shape[0]
         
-    def query(self,points):
-        """
-        @summary: Estimate a set of test points given the model we built.
-        @param points: should be a numpy array with each row corresponding to a specific query.
-        @returns the estimated values according to the saved model.
-        """
-        return (self.model_coefs[:-1] * points).sum(axis = 1) + self.model_coefs[-1]
+        ######################################################################
+        if num_samps < 1:
+            return np.array([-1, -1, np.nan, np.nan])
 
+        if num_samps <= self.leaf_size:
+            return np.array([-1, np.mean(dataY), np.nan, np.nan])
+
+        if len(np.unique(dataY)) == 1:
+            return np.array([-1, dataY[0], np.nan, np.nan])
+        ######################################################################
+   
+        remain_feats_for_split = list(range(num_feats))
+
+        # calculate coor(X_i,Y)
+        corrs = []
+        for i in range(num_feats):
+            abs_corr = abs(np.corrcoef(dataX[:,i], dataY)[0,1])
+            corrs.append((i, abs_corr))
+        
+        # Sort corrs in descending order
+        corrs = sorted(corrs, key=itemgetter(1), reverse=True)
+
+        feat_corr_i = 0
+        while len(remain_feats_for_split) > 0:
+            best_feat_i = corrs[feat_corr_i][0]
+            best_abs_corr = corrs[feat_corr_i][1]
+
+            # calculate split_val by taking median over best feature
+            split_val = np.median(dataX[:, best_feat_i])
+
+            # get boolean indecies for left and right splitting
+            left_index = dataX[:, best_feat_i] <= split_val
+            right_index = dataX[:, best_feat_i] > split_val
+
+            # break out of the loop if split is successful            
+            if len(np.unique(left_index)) > 1:
+                break
+            
+            remain_feats_for_split.remove(best_feat_i)
+            feat_corr_i += 1
+            
+        #If we complete the while loop and run out of features to split, return leaf
+        if len(remain_feats_for_split) == 0:
+            return np.array([-1, Counter(dataY).most_common(1)[0][0], np.nan, np.nan])
+
+        # Build left and right branches and the root                    
+        lefttree = self.buildTree(dataX[left_index], dataY[left_index], dataX, dataY)
+        righttree = self.buildTree(dataX[right_index], dataY[right_index], dataX, dataY)
+
+        ##############################################################################
+        # Set the starting row for the right subtree of the current root
+        if lefttree.ndim == 1:
+            righttree_start = 2 # The right subtree starts 2 rows down
+        elif lefttree.ndim > 1:
+            righttree_start = lefttree.shape[0] + 1
+        #############################################################################
+        
+        root = np.array([best_feat_i, split_val, 1, righttree_start])
+        return np.vstack((root, lefttree, righttree))
+
+
+    def recur_search(self, point, row=0):
+        feature_index = int(self.tree[row][0])
+        if feature_index == -1:
+            return self.tree[row][1]
+        if point[feature_index] <= self.tree[row][1]:
+            return self.recur_search(point, row + int(self.tree[row][2]))
+        else:
+        return self.recur_search(point, row + int(self.tree[row][3]))
+
+    
+    def addEvidence(self, dataX, dataY):
+        self.tree = self.buildTree(dataX, dataY)
+        if self.verbose:
+            self.get_learner_info()
+            
+    def query(self, dataX):
+        """ Performe prediction on test set given the model we built
+        Params:  dataX -np ndarray of test 
+        Returns: preds: 1D np array of the estimated values
+        """
+        preds = []
+        for rows in dataX:
+            preds.append(self.recur_search(rows, row=0))
+        return np.asarray(preds)
+    
 if __name__=="__main__":
-    print "the secret clue is 'zzyzx'"
+    print " lalala "
