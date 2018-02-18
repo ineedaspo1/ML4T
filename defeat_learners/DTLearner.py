@@ -4,6 +4,10 @@ A simple wrapper for Desicion Tree Learner.  (c) 2018 T. Ruzmetov
 
 import numpy as np
 import warnings
+from copy import deepcopy
+from operator import itemgetter
+from collections import Counter
+
 
 class DTLearner(object):
     
@@ -98,7 +102,7 @@ class DTLearner(object):
         if point[feature_index] <= self.tree[row][1]:
             return self.recur_search(point, row + int(self.tree[row][2]))
         else:
-        return self.recur_search(point, row + int(self.tree[row][3]))
+            return self.recur_search(point, row + int(self.tree[row][3]))
 
     
     def addEvidence(self, dataX, dataY):
