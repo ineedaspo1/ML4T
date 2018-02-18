@@ -43,6 +43,7 @@ def test_code():
     lrlearner = lrl.LinRegLearner(verbose = False)
     dtlearner = dt.DTLearner(verbose = False, leaf_size = 1)
     X, Y = best4LinReg()
+    #X, Y = best4LinReg(seed=100, n_samples=100, n_features=5)
 
     # compare the two learners
     rmseLR, rmseDT = compare_os_rmse(lrlearner, dtlearner, X, Y)
@@ -61,7 +62,8 @@ def test_code():
     # get data that is best for a random tree
     lrlearner = lrl.LinRegLearner(verbose = False)
     dtlearner = dt.DTLearner(verbose = False, leaf_size = 1)
-    X, Y = best4DT()
+    #X, Y = best4DT()
+    X, Y = best4DT(seed=10,n_samples=100, n_features=5)
 
     # compare the two learners
     rmseLR, rmseDT = compare_os_rmse(lrlearner, dtlearner, X, Y)
