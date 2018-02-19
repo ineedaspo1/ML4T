@@ -121,4 +121,5 @@ class DTLearner(object):
         return np.asarray(preds)
     
 if __name__=="__main__":
-    print " lalala "
+    print(" lalala ")
+    #print " lala"

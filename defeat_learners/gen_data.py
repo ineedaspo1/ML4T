@@ -41,10 +41,10 @@ def best4DT(seed=1489683273, n_samples=1000, n_features=2):
     noise = np.random.normal(size = n_samples, scale = noise_std)
     coefficients = np.random.random(size = (n_features,)) + A
 
-    #Y = np.dot(Amplitude*np.cos(X) + X,coefficients)  + noise
+    #Y = np.dot(A*np.cos(X) + X,coefficients)  + noise
     #Y = np.dot(A*np.exp(-X) ,coefficients) + noise
-    #Y = np.dot(X**2,coefficients)  + noise
-    Y = np.exp(np.dot(-X*X, coefficients))  + noise
+    Y = np.dot(A*A*np.cos(X) - X*X,coefficients)  + noise
+    #Y = np.exp(np.dot(-X*X, coefficients))  + noise
 
     return X, Y
 
