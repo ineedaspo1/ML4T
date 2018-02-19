@@ -42,8 +42,8 @@ def test_code():
     # create two learners and get data
     lrlearner = lrl.LinRegLearner(verbose = False)
     dtlearner = dt.DTLearner(verbose = False, leaf_size = 1)
-    X, Y = best4LinReg()
-    #X, Y = best4LinReg(seed=100, n_samples=100, n_features=5)
+    #X, Y = best4LinReg()
+    X, Y = best4LinReg(seed=100, n_samples=100, n_features=5)
 
     # compare the two learners
     rmseLR, rmseDT = compare_os_rmse(lrlearner, dtlearner, X, Y)
@@ -63,16 +63,16 @@ def test_code():
     lrlearner = lrl.LinRegLearner(verbose = False)
     dtlearner = dt.DTLearner(verbose = False, leaf_size = 1)
     #X, Y = best4DT()
-    X, Y = best4DT(seed=10,n_samples=100, n_features=5)
+    X, Y = best4DT(seed=10,n_samples=1000, n_features=10)
 
     # compare the two learners
     rmseLR, rmseDT = compare_os_rmse(lrlearner, dtlearner, X, Y)
 
     # share results
     print
-    print "best4RT() results"
+    print "best4DT() results"
     print "RMSE LR    : ", rmseLR
-    print "RMSE RT    : ", rmseDT
+    print "RMSE DT    : ", rmseDT
     if rmseDT < 0.9 * rmseLR:
         print "DT < 0.9 LR:  pass"
     else:
