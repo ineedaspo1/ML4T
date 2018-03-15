@@ -24,7 +24,6 @@ def compute_portfolio_stats(port_val, rfr = 0.0, sf = 252.0):
 
     start_date = port_val.index[0].to_datetime()
     end_date = port_val.index[-1].to_datetime()
-
     return cr, adr, sdr, sr, port_val, start_date, end_date
 
 def compute_portvals(orders_file = "./orders/orders.csv", start_val = 1000000, commission=9.95, impact=0.005):
@@ -74,6 +73,7 @@ def compute_portvals(orders_file = "./orders/orders.csv", start_val = 1000000, c
             orderTypeConst = 1.0
 
         shareOrders.ix[orders.index[i].to_datetime(), orders.ix[i]['Symbol']] = shareOrders.ix[orders.index[i].to_datetime(), orders.ix[i]['Symbol']] + (orders.ix[i]['Shares'] * orderTypeConst) 
+
         orderCost =  prices.ix[orders.index[i].to_datetime()][orders.ix[i]['Symbol']] * orders.ix[i]['Shares'] * orderTypeConst 
         
         print "Stock:",orders.ix[i]['Symbol']
