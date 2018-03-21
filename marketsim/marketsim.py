@@ -47,8 +47,8 @@ def compute_portvals(orders_file = "./orders/orders.csv", start_val = 1000000, c
     prices_SPY = prices_all['SPY'] 
 
     # Create leverage dataframe
-    leverage =  pd.DataFrame(columns=['leverage'], index=[dates])
-    leverage.ix[:,['leverage']] = 0
+    #leverage =  pd.DataFrame(columns=['leverage'], index=[dates])
+    #leverage.ix[:,['leverage']] = 0
 
     # Create cash-orders dataframe
     cashOrders = pd.DataFrame(columns=['cash_order'], index=[dates])
