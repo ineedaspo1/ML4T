@@ -12,47 +12,105 @@ import datetime as dt
 from util import get_data, plot_data
 
 
-def indicators(sd = dt.datetime(2008,1,1), ed = dt.datetime(2009,12,31), \
-    syms = ['JPM'], sv=100000):
+def indicators(sd = dt.datetime(2008,1,1), ed = dt.datetime(2009,12,31), syms = ['JPM']):
 
     # Read in adjusted closing prices for given symbols, date range
     dates = pd.date_range(sd, ed)
     prices_all = get_data(syms, dates)  # automatically adds SPY
-    price = prices_all[syms]           # only portfolio symbols
-   
-    #calc bb value
+    price = prices_all[syms]            # only portfolio symbols
+    #price = price / price.iloc[0]
+    price = normalize_stocks(price)
+
+
+    #calc SMA
     window_size = 20
     k = 2
     sma = price.rolling(window_size).mean()
-    std_bb = price.rolling(window_size).std()
-    bb = (price - sma) / (2*std_bb)
+   
 
-    # calc momentum
+    #calc Bolinger Bands 
+    rstd = price.rolling(window_size).std()
+    upper_b = sma + k*rstd
+    lower_b = sma - k*rstd
+   
+    #calc momentum
     delta = 5
     momentum = price/price.shift(delta) - 1
-    
+   
     
     #get sddr = volatility
     daily_r = price / price.shift(1) - 1.00
     sddr = daily_r.std()
-    vol = sddr.values()
+    vol = sddr
     
-    return bb, std_bb, momentum, vol
+    return price, sma, upper_b, lower_b , momentum, vol
+
+def normalize_stocks(price):
+    fill_missing_values(price)
+    return price / price.ix[0, :]
+
+def fill_missing_values(prices):
+    """Fill missing values in data frame, in place."""
+    prices.fillna(method='ffill', inplace=True)
+    prices.fillna(method='bfill', inplace=True)
 
 
 def test_code():
     start_date = dt.datetime(2008,1,1)
-    end_date = dt.datetime(2009,12,31)
+    end_date = dt.datetime(2009,6,1)
     symbols = ['JPM']
-    sv = 100000
-    bb, std_bb, momentum, vol = indicators(sd = start_date, ed = end_date, syms = symbols, sv = sv)
 
-    df_temp = pd.concat([port_val / port_val[0],\
-                         prices_SPY / prices_SPY.iloc[0]],\
-                        keys = ['Portfolio', 'SPY'],\
-                        axis = 1)
-    plot_data(df_temp)
+    price,sma,upper_b,lower_b,momentum,vol = indicators(sd = start_date, ed = end_date, syms = symbols)
 
+    df_sma = pd.concat([price, sma, price/sma],\
+                       keys = ['Price', 'SMA', 'Price/SMA'],\
+                       axis = 1)
+    #SMA
+    df = df_sma
+    df.dropna()
+    fig = plt.figure(figsize=(10,5))
+    plt.title('Simple Moving Average', size = 14)
+    plt.plot(df.index,df.Price, linestyle='-',color='blue')
+    plt.plot(df.index,df.SMA, linestyle='-',color='orange')
+    plt.plot(df.index,df.Price/df.SMA, linestyle='-',color='green')
+    plt.legend(["Price","SMA","Price/SMA"], loc='best')
+    plt.xticks(rotation=45, size=12) 
+    plt.yticks(size=12)          
+    plt.xlabel('Date', size=14)
+    plt.ylabel('')
+    fig.set_tight_layout(True)
+    plt.show()
+    fig.savefig('plots/SMA.pdf')
+
+    #Bollinger Bands
+    df_bb = pd.concat([price, sma, upper_b, lower_b],\
+                      keys = ['Price', 'SMA', 'Upper_BB', 'Lower_BB'],\
+                      axis = 1)
+    df_bb.dropna()
+    fig = plt.figure(figsize=(10,5))
+    plt.plot(df_bb.index,df_bb.Price, linestyle='-',color='blue')
+    plt.plot(df_bb.index,df_bb.SMA, linestyle='-',color='orange')
+    plt.plot(df_bb.index,df_bb.Upper_BB, linestyle='-',color='green')
+    plt.plot(df_bb.index,df_bb.Lower_BB, linestyle='-',color='black')
+    plt.title('Bollinger Bands', size=14)
+    plt.legend(["Price","SMA","Upper Band", 'Lower Band'], loc='best')
+    plt.xticks(rotation=45, size=12) 
+    plt.yticks(size=12)          
+    plt.xlabel('Date', size=14)
+    plt.ylabel('')
+    fig.set_tight_layout(True)
+    plt.show()
+    fig.savefig('plots/BB.pdf')
+
+    
+    df_m = pd.concat([price,momentum,sma],\
+                     keys = ['Price','Momentum', 'SMA'],\
+                     axis = 1)
+    
+    df_vol = pd.concat([price,vol],\
+                       keys = ['Price','Volatility'],\
+                       axis = 1)
+    
    
 if __name__ == "__main__":
     test_code()
