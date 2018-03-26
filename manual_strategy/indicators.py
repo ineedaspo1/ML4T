@@ -12,47 +12,51 @@ import datetime as dt
 from util import get_data, plot_data
 
 
-def indicators(sd = dt.datetime(2008,1,1), ed = dt.datetime(2009,12,31), syms = ['JPM']):
-
+def indicators(sd = dt.datetime(2008,1,1),\
+               ed = dt.datetime(2009,12,31),\
+               syms = ['JPM'],\
+               window_size = 20,\
+               k = 2):
+    """
+    This function generatos set of indicators along with helpers, that can be used
+    to create trading signals.
+    """
     # Read in adjusted closing prices for given symbols, date range
     dates = pd.date_range(sd, ed)
     prices_all = get_data(syms, dates)  # automatically adds SPY
     price = prices_all[syms]            # only portfolio symbols
     #price = price / price.iloc[0]
-    price = normalize_stocks(price)
+    price = normalize_and_fill(price)
 
 
-    #calc SMA
-    window_size = 20
-    k = 2
+    #get SMA
     sma = price.rolling(window_size).mean()
-   
 
-    #calc Bolinger Bands 
+    #get Bolinger Bands 
     rstd = price.rolling(window_size).std()
     upper_b = sma + k*rstd
     lower_b = sma - k*rstd
    
-    #calc momentum
-    delta = 5
-    momentum = price/price.shift(delta) - 1
-   
+    #get momentum
+    roll_days = 5
+    momentum = calc_momentum(price, roll_days)
     
     #get sddr = volatility
     daily_r = price / price.shift(1) - 1.00
     sddr = daily_r.std()
     vol = sddr
     
-    return price, sma, upper_b, lower_b , momentum, vol
+    return price, sma, upper_b, lower_b, momentum, vol
 
-def normalize_stocks(price):
-    fill_missing_values(price)
+def calc_momentum(price, roll_days):
+    """ Calculates Momentum given normalized price data frame"""
+    momentum = price/price.shift(roll_days) - 1
+    return momentum
+
+def normalize_and_fill(price):
+    price.fillna(method='ffill', inplace=True)
+    price.fillna(method='bfill', inplace=True)
     return price / price.ix[0, :]
-
-def fill_missing_values(prices):
-    """Fill missing values in data frame, in place."""
-    prices.fillna(method='ffill', inplace=True)
-    prices.fillna(method='bfill', inplace=True)
 
 
 def test_code():
