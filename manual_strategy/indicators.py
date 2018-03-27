@@ -107,14 +107,24 @@ def test_code():
     fig.savefig('plots/BB.pdf')
 
     
-    df_m = pd.concat([price,momentum,sma],\
-                     keys = ['Price','Momentum', 'SMA'],\
+    df_m = pd.concat([price,sma,momentum],\
+                     keys = ['Price','SMA','Momentum'],\
                      axis = 1)
     
-    df_vol = pd.concat([price,vol],\
-                       keys = ['Price','Volatility'],\
-                       axis = 1)
-    
-   
+    fig = plt.figure(figsize=(10,5))
+    plt.plot(df_m.index,df_m.Price, linestyle='-',color='blue')
+    #plt.plot(df_m.index,df_m.SMA, linestyle='-',color='orange')
+    plt.plot(df_m.index,df_m.Momentum, linestyle='-',color='green')
+    plt.axhline(y=0.0, color='black', linestyle='--')
+    plt.title('Momentum', size=14)
+    plt.legend(["Price","Momentum"], loc='best')
+    plt.xticks(rotation=45, size=12) 
+    plt.yticks(size=12)          
+    plt.xlabel('Date', size=14)
+    plt.ylabel('')
+    fig.set_tight_layout(True)
+    plt.show()
+    fig.savefig('plots/Momentum.pdf')
+
 if __name__ == "__main__":
     test_code()
