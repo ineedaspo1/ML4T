@@ -85,7 +85,7 @@ def fill_missing_values(prices):
     prices.fillna(method='bfill', inplace=True)
 
 
-def optimize_in_sample_port(n_trials = 50, period = 1):
+def optimize_in_sample_port(n_trials = 30, period = 1):
     """
     This function returns number of rooling days that gives max finale port_value
     """
@@ -127,20 +127,20 @@ def test_code():
     
     chart_df = pd.concat([prices_portval_normalized, prices_JPM_normalized], axis=1)
     chart_df.columns = ['Portfolio', 'Benchmark']
-    chart_df.plot(title='BPS and Benchmark Comparison for In Sample', use_index=True, color=['Black', 'Blue'],lw=2)
+    pl = chart_df.plot(title='BPS and Benchmark Comparison for In Sample', use_index=True, color=['Black', 'Blue'],lw=2)
            
     cum_ret, avg_daily_ret, std_daily_ret, sharpe_ratio = ms.compute_portfolio_stats(portvals)
     cum_ret_Bench, avg_daily_ret_Bench, std_daily_ret_Bench, sharpe_ratio_Bench = ms.compute_portfolio_stats(prices)
 
     print('In Sample stats:')
     print "Optimal Rolling_Days Value: {}".format(rd)
-    print
-    print "Cumulative Return of Fund: {}".format(cum_ret)
+    print "Cumulative Return of Portfolio: {}".format(cum_ret)
     print "Cumulative Return of Benchmark : {}".format(cum_ret_Bench)
-    print
     print "Final Portfolio Value: {}".format(portvals[-1])
-    
-    plt.show()
+
+    fig = pl.get_figure()
+    fig.savefig("plots/BPS_InSample.png")
+    #plt.show()
 
 if __name__ == "__main__":
     test_code()

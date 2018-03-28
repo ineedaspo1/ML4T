@@ -30,21 +30,21 @@ def testPolicy(symbol = "JPM", sd=dt.datetime(2008,1,1), ed=dt.datetime(2009,12,
     dates = pd.date_range(sd, ed)
     prices_all = get_data(syms, dates)  # automatically adds SPY
     prices = prices_all[syms]  # only portfolio symbols
-    prices_normalized = normalize_stocks(prices)
+    prices_normed = normalize_stocks(prices)
 
-    sma = compute_sma(prices_normalized, rolling_days)
-    bb = compute_bollinger_bands(prices_normalized, rolling_days, sma, k)
+    sma = compute_sma(prices_normed, rolling_days)
+    bb = compute_bollinger_bands(prices_normed, rolling_days, sma, k)
 
     m_rd = 5
-    momentum = compute_momentum(prices_normalized, rd = m_rd)
+    momentum = compute_momentum(prices_normed, rd = m_rd)
 
-    df_sha = pd.DataFrame(0, index = prices_normalized.index, columns = ['Shares'])
-    df_ord = pd.DataFrame('BUY', index = prices_normalized.index, columns = ['Order'])
-    df_sym = pd.DataFrame(symbol, index = prices_normalized.index, columns = ['Symbol'])
-    df_mom = pd.DataFrame(momentum, index = prices_normalized.index, columns = ['Momentum'])
+    df_sha = pd.DataFrame(0, index = prices_normed.index, columns = ['Shares'])
+    df_ord = pd.DataFrame('BUY', index = prices_normed.index, columns = ['Order'])
+    df_sym = pd.DataFrame(symbol, index = prices_normed.index, columns = ['Symbol'])
+    df_mom = pd.DataFrame(momentum, index = prices_normed.index, columns = ['Momentum'])
     net_holdings = 0
     #loop over rows to generate signals for trading
-    for i, row in prices_normalized.iterrows():
+    for i, row in prices_normed.iterrows():
         sma_value = sma.loc[i]['SMA']
         upper_b = bb.loc[i]['upper']
         lower_b = bb.loc[i]['lower']
@@ -159,10 +159,10 @@ def test_code():
     #plot
     chart_df = pd.concat([prices_portval_normalized, prices_JPM_normalized], axis=1)
     chart_df.columns = ['Portfolio', 'Benchmark']
-    chart_df.plot(title='Manual Strategy and Benchmark Comparison for In Sample',\
-                  use_index=True,\
-                  color=['Black', 'Blue'],\
-                  figsize=(10,5))
+    pl1=chart_df.plot(title='Manual Strategy and Benchmark Comparison for In Sample',\
+                      use_index=True,\
+                      color=['Black', 'Blue'],\
+                      figsize=(10,5))
 
     for index, row in df_trades.iterrows():
         if df_trades.loc[index]['Order'] == 'BUY':
@@ -170,9 +170,9 @@ def test_code():
         elif df_trades.loc[index]['Order'] == 'SELL':
             plt.axvline(x=index, color='r', linestyle='-')
 
-    #plt.set_tight_layout(True)
-    plt.show()
-    #plt.savefig('plots/MS_InSample.pdf')
+    #plt.show()
+    fig = pl1.get_figure()
+    fig.savefig('plots/MS_InSample.png')
     #############################################################################################
      
 
@@ -205,13 +205,12 @@ def test_code():
     #plot
     chart_df = pd.concat([prices_portval_normalized, prices_JPM_normalized], axis=1)
     chart_df.columns = ['Portfolio', 'Benchmark']
-    chart_df.plot(title='Manual Strategy and Benchmark Comparison for Out of Sample',\
-                  use_index=True,\
-                  color=['Black', 'Blue'],\
-                  figsize=(10,5))
-    #plt.set_tight_layout(True)
-    plt.show()
-    #plt.savefig('plots/MS_OutSample.png')
+    pl2=chart_df.plot(title='Manual Strategy and Benchmark Comparison for Out of Sample',\
+                      use_index=True,\
+                      color=['Black', 'Blue'],\
+                      figsize=(10,5))
+    fig = pl2.get_figure()
+    fig.savefig('plots/MS_OutSample.png')
     ###########################################################################################
     
 if __name__ == "__main__":

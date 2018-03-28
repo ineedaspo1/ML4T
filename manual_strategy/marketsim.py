@@ -4,11 +4,14 @@ import datetime as dt
 import matplotlib.pyplot as plt
 from util import get_data, plot_data
 
+
+def author():
+    return 'truzmetov3'
+
 def compute_portvals(orders, start_val = 1000000, commission=0.00, impact=0.00):
 
     df_orders = orders
     df_orders.sort_index(inplace=True)
-
     dates = pd.date_range(df_orders.first_valid_index(), df_orders.last_valid_index())
 
     syms = np.array(df_orders.Symbol.unique()).tolist()
@@ -44,9 +47,7 @@ def create_trades(df_orders, df_prices, commission, impact):
         df_impact.loc[index]['Impact'] = df_impact.loc[index]['Impact'] + (df_prices.loc[index][sym] * shares * impact)
 
     df_temp = (df_prices * df_trades)
-
     df_trades['Cash'] = (-1.0 * df_temp.sum(axis = 1))
-
     df_trades['Cash'] = df_trades['Cash'] - df_commission['Commission'] - df_impact['Impact']
 
     return df_trades
@@ -65,17 +66,13 @@ def create_values(df_prices, df_holdings):
 def cal_portval(df_values):
     return df_values.sum(axis = 1)
 
-def compute_portfolio_stats(port_val, \
-    rfr = 0.0, sf = 252.0):
+def compute_portfolio_stats(port_val, rfr = 0.0, sf = 252.0):
     cr = get_cm_return(port_val)
     daily_returns = get_daily_returns(port_val)
     adr = daily_returns.mean()
     sddr = daily_returns.std()
-
-    #calculating sr
     diff_returns = daily_returns - rfr
     diff_returns_mean = diff_returns.mean()
-
     sr = np.sqrt(sf) * (diff_returns_mean / sddr)
     return cr, adr, sddr, sr
 
@@ -96,6 +93,3 @@ def fill_missing_values(prices):
 
 def get_cm_return(port_val):
     return (port_val.ix[-1, :] / port_val.ix[0, :]) - 1
-
-def author():
-    return 'truzmetov3'
