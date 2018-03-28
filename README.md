@@ -1,4 +1,7 @@
-# ML4T_2018Fall
+## Machine Learning for Trading Course Repo
+
+This repository contains projects including codes developed as part of ml4t course.
 Course website: http://quantsoftware.gatech.edu/CS7646_Spring_2018
 
-Information on using the autograder on buffet0x servers: http://quantsoftware.gatech.edu/ML4T_Software_Setup
+Finale goal of this course is to learn modern machine leaning(predictive modelling) strategies that are being
+used in stock market to increase the profit. All scripts are developed with pythin2.
