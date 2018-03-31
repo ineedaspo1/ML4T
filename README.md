@@ -4,4 +4,4 @@ This repository contains projects including codes developed as part of ml4t cour
 Course website: http://quantsoftware.gatech.edu/CS7646_Spring_2018
 
 Finale goal of this course is to learn modern machine leaning(predictive modelling) strategies that are being
-used in stock market to increase the profit. All scripts are developed with pythin2.
+used in stock market to increase the profit. All scripts are developed with python2.
