@@ -9,7 +9,7 @@ class QLearner(object):
 
     """
     
-    Briefly describe! Bla Bla Bla
+    Briefly describe! Bla Bla Bla, balck panter lives, ya Wakanda!
 
     --------------------------
     Actions: There are 4 possible actions
