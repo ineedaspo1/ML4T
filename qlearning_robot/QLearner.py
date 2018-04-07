@@ -25,31 +25,32 @@ class QLearner(object):
     
     def __init__(self, num_states=100, num_actions = 4, alpha = 0.2, \
                  gamma = 0.9, rar = 0.5, radr = 0.99, dyna = 0, verbose = False):
-
         self.verbose = verbose
         self.num_actions = num_actions
         self.s = 0
         self.a = 0
+        self.alpha = alpha
+        self.gamma = gamma
+        self.dyna = dyna
         self.rar = rar
         self.radr = radr
-        
-        
+        #Uniformly Initialize Q-table with float values [-1, 1]
+        self.Q = np.random.rand(num_states, num_actions) * 2 - 1
+
+    
     def querysetstate(self, s):
         """
         @summary: Update the state without updating the Q-table
         @param s: The new state
         @returns: The selected action
-        
         """
         self.s = s
-        rand_action = rand.randint(0, self.num_actions-1)
-        best_action = 2 # choose action that gives max Q
-
-        
-        
+        #rand_action = rand.randint(0, self.num_actions-1)
+        action = np.argmax(self.Q[s,:])
         if self.verbose: print "s =", s,"a =",action
         return action
 
+    
     def query(self,s_prime,r):
         """
         @summary: Update the Q table and return an action
@@ -60,6 +61,11 @@ class QLearner(object):
         action = rand.randint(0, self.num_actions-1)
         if self.verbose: print "s =", s_prime,"a =",action,"r =",r
         return action
+
+
+    
+    def author(self):
+        return 'truzmetov3'
 
 if __name__=="__main__":
     print "Remember Q from Star Trek? Well, this isn't him"
