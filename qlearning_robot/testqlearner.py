@@ -31,7 +31,7 @@ def printmap(data):
         print
     print "--------------------"
 
-# find where the robot is in the map
+# find where the start position is in the map
 def getrobotpos(data):
     R = -999
     C = -999
