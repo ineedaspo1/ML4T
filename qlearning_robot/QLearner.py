@@ -8,9 +8,6 @@ import random as rand
 class QLearner(object):
 
     """
-    
-    Briefly describe! Bla Bla Bla, balck panter lives, ya Wakanda!
-
     --------------------------
     Actions: There are 4 possible actions
     0 - move north 
@@ -37,7 +34,8 @@ class QLearner(object):
         #Uniformly Initialize Q-table with float values [-1, 1]
         self.Q = np.random.rand(num_states, num_actions) * 2 - 1
 
-        # Initialize transition matrix T, transition count matrix T_c, and reward matrix R for 'dyna'.
+        # Initialize transition matrix T, transition count matrix T_c,
+        # and reward matrix R for 'dyna'.
         if self.dyna != 0:
             self.Tc = 0.00001 * np.ones((num_states, num_actions, num_states))
             self.T = self.Tc / self.Tc.sum(axis=2, keepdims=True)
@@ -72,22 +70,14 @@ class QLearner(object):
                            self.alpha*(r + self.gamma * np.max(self.Q[s_prime,:]))  
 
 
-
-        # Performe Dyna id specified
+        ############################## Dyna ##############################
         if self.dyna != 0:
-            # Increment count of current transition.
             self.Tc[self.s, self.a, s_prime] += 1
-            
-            #Normalize all counts to produce the correct probabilities in the transition matrix.
             self.T[self.s, self.a, :] = self.Tc[self.s, self.a, :] / self.Tc[self.s, self.a, :].sum()
-            
-            #Update rewards
             self.R[self.s, self.a] = (1 - self.alpha) * self.R[self.s, self.a] + self.alpha * r
+            self._dyna()  #run dyna
+        ##################################################################    
 
-            #run dyna
-            self._run_dyna()
-
-            
             
         action = np.argmax(self.Q[s_prime,:])  # take best action
         if rand.uniform(0.0, 1.0) <= self.rar: # take rand action conditionally
@@ -96,31 +86,31 @@ class QLearner(object):
         self.rar = self.rar * self.radr        # update rar globally
         self.s = s_prime                       # update current state globally
         self.a = action                        # update action globally 
-        
         if self.verbose: print "s =", s_prime,"a =",action,"r =",r
-
         return action
 
-    def _run_dyna(self):
-        # Generate state and action samples to speed up hallucination.
-        s_samples = np.random.randint(0, self.num_states, self.dyna)
-        a_samples = np.random.randint(0, self.num_actions, self.dyna)
+    def _dyna(self):
 
+        # Generate state and action samples to speed up hallucination.
+        si = np.random.randint(0, self.num_states, self.dyna)
+        ai = np.random.randint(0, self.num_actions, self.dyna)
+        
         Q1 = self.Q
         T1 = self.T
-        # For each sample...
+        R1 = self.R
+
         for i in range(self.dyna):
-            s = s_samples[i]
-            a = a_samples[i]
+            s = si[i]
+            a = ai[i]
             # Simulate an action with the transition model and land on an s_prime
             s_prime = np.argmax(np.random.multinomial(1, T1[s, a, :]))
-            # Compute reward of simulated action.
-            r = self.R[s, a]
+            # get reward of simulated action.
+            r = R1[s, a]
             # Update Q
             Q1[s, a] = (1 - self.alpha) * Q1[s, a] + \
-                           self.alpha * (r + self.gamma * np.max(Q1[s_prime,:]))
-    
-        self.Q[s,a] = Q1[s,a]
+                       self.alpha * (r + self.gamma * np.max(Q1[s_prime,:]))
+
+        self.Q = Q1
             
     def author(self):
         return 'truzmetov3'
